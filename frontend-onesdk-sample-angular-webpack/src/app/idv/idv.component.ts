@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { environment } from 'src/environments/environment';
 import { OnesdkTokenService } from '../onesdk-token.service';
+import { environment } from 'src/environments/environment';
 import OneSDK from '@frankieone/one-sdk';
 
 @Component({
-	selector: 'app-idverse',
-	templateUrl: './idverse.component.html',
-	styleUrls: ['./idverse.component.css']
+	selector: 'app-idv',
+	templateUrl: './idv.component.html',
+	styleUrls: ['./idv.component.css']
 })
-export class IdverseComponent implements OnInit {
+export class IdvComponent implements OnInit {
 	constructor(private tokenService: OnesdkTokenService) { }
 
 	async ngOnInit() {
@@ -18,13 +18,6 @@ export class IdverseComponent implements OnInit {
 				environment.API_KEY,
 				environment.CUSTOMER_CHILD_ID
 			),
-			recipe: {
-				idv: {
-					provider: {
-						name: "ocrlabs"
-					}
-				}
-			},
 		});
 
 		const flow = oneSdk.flow as unknown as (arg0: any) => any;
@@ -36,6 +29,6 @@ export class IdverseComponent implements OnInit {
 		oneSdkIndividual.addConsent("creditheader");
 		await oneSdkIndividual.submit();
 
-		idv.mount("#idverse");
+		idv.mount("#idv-dynamic");
 	}
 }
