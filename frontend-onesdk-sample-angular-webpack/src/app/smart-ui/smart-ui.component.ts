@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import OneSDK from '@frankieone/one-sdk';
 import { environment } from 'src/environments/environment';
+import { EnvironmentConfigService } from '../environment-config.service';
 import { OnesdkTokenService } from '../onesdk-token.service';
 
 @Component({
@@ -9,15 +10,11 @@ import { OnesdkTokenService } from '../onesdk-token.service';
 	styleUrls: ['./smart-ui.component.css']
 })
 export class SmartUiComponent implements OnInit {
-	constructor(private tokenService: OnesdkTokenService) { }
+  private oneSdk: any;
+	constructor(private tokenService: OnesdkTokenService, private envConfigService: EnvironmentConfigService) { }
 
-	async ngOnInit() {
-		const oneSdk = await OneSDK({
-			session: await this.tokenService.getToken(
-				environment.CUSTOMER_ID,
-				environment.API_KEY,
-				environment.CUSTOMER_CHILD_ID
-			),
+	async ngOnInit() {    this.oneSdk = await OneSDK({
+			session: await this.tokenService.getToken(),
 			recipe: {
 				form: {
 					provider: {
@@ -28,7 +25,7 @@ export class SmartUiComponent implements OnInit {
 			},
 		});
 
-		const oneSdkIndividual = oneSdk.individual();
+		const oneSdkIndividual = this.oneSdk.individual();
 		oneSdkIndividual.addConsent("general");
 		oneSdkIndividual.addConsent("docs");
 		oneSdkIndividual.addConsent("creditheader");
@@ -358,7 +355,7 @@ export class SmartUiComponent implements OnInit {
 				"ctaText": "testing failure screen"
 			},
 			"progressBar": true,
-			"googleAPIKey": environment.GOOGLE_API_KEY,
+			"googleAPIKey": await this.envConfigService.getGoogleApiKey(),
 			"acceptedCountries": [
 				"AUS"
 			],
@@ -410,7 +407,7 @@ export class SmartUiComponent implements OnInit {
 			dl: ff_dl
 		};
 
-		const form = (oneSdk.component as unknown as (arg1: string, arg2: any) => any)("form", config_table.passport) as any;
+		const form = (this.oneSdk.component as unknown as (arg1: string, arg2: any) => any)("form", config_table.passport) as any;
 
 		form.mount("#smartui-container");
 	}

@@ -34,23 +34,49 @@ app.post('/api/get-token', express.json(), async (req, res) => {
     const BASE_API_URL = process.env.BASE_API_URL || 'https://backend.latest.frankiefinancial.io';
     const API_CREATE_SESSION_PATH = process.env.API_CREATE_SESSION_PATH || '/auth/v2/machine-session';
     
+    // Debug environment variables (don't log API_KEY in production)
+    console.log('Environment variables:');
+    console.log('CUSTOMER_ID:', CUSTOMER_ID ? 'Set' : 'Not set');
+    console.log('CUSTOMER_CHILD_ID:', CUSTOMER_CHILD_ID ? 'Set' : 'Not set');
+    console.log('API_KEY:', API_KEY ? 'Set' : 'Not set');
+    console.log('BASE_API_URL:', BASE_API_URL);
+    console.log('API_CREATE_SESSION_PATH:', API_CREATE_SESSION_PATH);
+    
     if (!CUSTOMER_ID || !API_KEY) {
       return res.status(500).json({ error: 'Missing required environment variables' });
     }
 
-    const response = await fetch(BASE_API_URL + API_CREATE_SESSION_PATH, {
+    const authString = Buffer.from([CUSTOMER_ID, CUSTOMER_CHILD_ID, API_KEY].filter(Boolean).join(":")).toString('base64');
+    console.log('Authorization string (base64):', authString);
+    
+    const apiUrl = BASE_API_URL + API_CREATE_SESSION_PATH;
+    console.log('API URL:', apiUrl);
+    
+    const requestBody = {
+      permissions: {
+        preset: "one-sdk",
+        reference: `demo-${new Date().toISOString()}`
+      }
+    };
+    console.log('Request body:', JSON.stringify(requestBody));
+    
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        authorization: "machine " + Buffer.from([CUSTOMER_ID, CUSTOMER_CHILD_ID, API_KEY].filter(Boolean).join(":")).toString('base64'),
+        authorization: "machine " + authString,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        permissions: {
-          preset: "one-sdk",
-          reference: `demo-${new Date().toISOString()}`
-        }
-      })
+      body: JSON.stringify(requestBody)
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API response error:', response.status, errorText);
+      return res.status(response.status).json({ 
+        error: `API request failed with status ${response.status}`,
+        details: errorText
+      });
+    }
 
     const data = await response.json();
     res.json(data);

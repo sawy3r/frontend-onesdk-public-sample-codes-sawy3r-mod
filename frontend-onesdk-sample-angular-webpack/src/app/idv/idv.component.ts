@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { OnesdkTokenService } from '../onesdk-token.service';
 import { environment } from 'src/environments/environment';
+import { EnvironmentConfigService } from '../environment-config.service';
 import OneSDK from '@frankieone/one-sdk';
 
 @Component({
@@ -9,21 +10,19 @@ import OneSDK from '@frankieone/one-sdk';
 	styleUrls: ['./idv.component.css']
 })
 export class IdvComponent implements OnInit {
-	constructor(private tokenService: OnesdkTokenService) { }
+  private oneSdk: any;
+	constructor(private tokenService: OnesdkTokenService, private envConfigService: EnvironmentConfigService) { }
 
-	async ngOnInit() {
-		const oneSdk = await OneSDK({
-			session: await this.tokenService.getToken(
-				environment.CUSTOMER_ID,
-				environment.API_KEY,
-				environment.CUSTOMER_CHILD_ID
-			),
-		});
+	async ngOnInit() {    
+    // Initialize the OneSDK with the token from the token service
+    this.oneSdk = await OneSDK({
+      session: await this.tokenService.getToken(),
+    });
 
-		const flow = oneSdk.flow as unknown as (arg0: any) => any;
+		const flow = this.oneSdk.flow as unknown as (arg0: any) => any;
 
 		const idv = flow("idv");
-		const oneSdkIndividual = oneSdk.individual();
+		const oneSdkIndividual = this.oneSdk.individual();
 		oneSdkIndividual.addConsent("general");
 		oneSdkIndividual.addConsent("docs");
 		oneSdkIndividual.addConsent("creditheader");

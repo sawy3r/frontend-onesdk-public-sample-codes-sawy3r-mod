@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { environment } from 'src/environments/environment';
+import { EnvironmentConfigService } from '../environment-config.service';
 import { OnesdkTokenService } from '../onesdk-token.service';
 import OneSDK from '@frankieone/one-sdk';
 
@@ -9,7 +10,8 @@ import OneSDK from '@frankieone/one-sdk';
 	styleUrls: ['./onboarding.component.css']
 })
 export class OnboardingComponent implements OnInit {
-	constructor(private tokenService: OnesdkTokenService) { }
+  private oneSdk: any;
+	constructor(private tokenService: OnesdkTokenService, private envConfigService: EnvironmentConfigService) { }
 
 	configurations = {
 		async configureWelcomeOCR(configureWelcomeOCR: any) {
@@ -114,13 +116,8 @@ export class OnboardingComponent implements OnInit {
 		},
 	};
 
-	async ngOnInit() {
-		const oneSdk = await OneSDK({
-			session: await this.tokenService.getToken(
-				environment.CUSTOMER_ID,
-				environment.API_KEY,
-				environment.CUSTOMER_CHILD_ID
-			),
+	async ngOnInit() {    this.oneSdk = await OneSDK({
+			session: await this.tokenService.getToken(),
 			recipe: {
 				ocr: {
 					provideReviewScreen: false,
@@ -129,15 +126,15 @@ export class OnboardingComponent implements OnInit {
 				form: {
 					provider: {
 						name: 'react',
-						googleApiKey: environment.GOOGLE_API_KEY
+						googleApiKey: await this.envConfigService.getGoogleApiKey()
 					}
 				}
 			},
 		});
 
-		const component = oneSdk.component as unknown as (arg0: any, arg1?: any) => any;
+		const component = this.oneSdk.component as unknown as (arg0: any, arg1?: any) => any;
 
-		const oneSdkIndividual = oneSdk.individual();
+		const oneSdkIndividual = this.oneSdk.individual();
 		oneSdkIndividual.addConsent("general");
 		oneSdkIndividual.addConsent("docs");
 		oneSdkIndividual.addConsent("creditheader");

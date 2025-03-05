@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { OnesdkTokenService } from '../onesdk-token.service';
 import OneSDK from '@frankieone/one-sdk';
 import { environment } from 'src/environments/environment';
+import { EnvironmentConfigService } from '../environment-config.service';
 
 @Component({
 	selector: 'app-e2e-ocr-bio',
@@ -9,15 +10,11 @@ import { environment } from 'src/environments/environment';
 	styleUrls: ['./e2e-ocr-bio.component.css']
 })
 export class E2eOcrBioComponent implements OnInit {
-	constructor(private tokenService: OnesdkTokenService) { }
+  private oneSdk: any;
+	constructor(private tokenService: OnesdkTokenService, private envConfigService: EnvironmentConfigService) { }
 
-	async ngOnInit() {
-		const oneSdk = await OneSDK({
-			session: await this.tokenService.getToken(
-				environment.CUSTOMER_ID,
-				environment.API_KEY,
-				environment.CUSTOMER_CHILD_ID
-			),
+	async ngOnInit() {    this.oneSdk = await OneSDK({
+			session: await this.tokenService.getToken(),
 			recipe: {
 				ocr: {
 					maxDocumentCount: 3,
@@ -25,13 +22,13 @@ export class E2eOcrBioComponent implements OnInit {
 				form: {
 					provider: {
 						name: 'react',
-						googleApiKey: environment.GOOGLE_API_KEY
+						googleApiKey: await this.envConfigService.getGoogleApiKey()
 					},
 				}
 			}
 		});
 
-		const component = oneSdk.component as unknown as (arg0: any, arg1?: any) => any;
+		const component = this.oneSdk.component as unknown as (arg0: any, arg1?: any) => any;
 
 		const form_welcome = component("form", {
 			name: "WELCOME",

@@ -28,6 +28,9 @@ COPY --from=build /app/package.json ./package.json
 # Install only production dependencies
 RUN npm install --only=production
 
+# Set NODE_ENV to production
+ENV NODE_ENV=production
+
 # Expose the port the app runs on
 EXPOSE 3000
 

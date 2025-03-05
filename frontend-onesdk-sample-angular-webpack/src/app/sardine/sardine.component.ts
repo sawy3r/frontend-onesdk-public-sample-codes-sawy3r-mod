@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import OneSDK from '@frankieone/one-sdk';
 import { environment } from 'src/environments/environment';
+import { EnvironmentConfigService } from '../environment-config.service';
 import { OnesdkTokenService } from '../onesdk-token.service';
 
 @Component({
@@ -9,26 +10,22 @@ import { OnesdkTokenService } from '../onesdk-token.service';
 	styleUrls: ['./sardine.component.css']
 })
 export class SardineComponent implements OnInit {
-	constructor(private tokenService: OnesdkTokenService) { }
+  private oneSdk: any;
+	constructor(private tokenService: OnesdkTokenService, private envConfigService: EnvironmentConfigService) { }
 
-	async ngOnInit() {
-		const oneSdk = await OneSDK({
-			session: await this.tokenService.getToken(
-				environment.CUSTOMER_ID,
-				environment.API_KEY,
-				environment.CUSTOMER_CHILD_ID,
-			),
+	async ngOnInit() {    this.oneSdk = await OneSDK({
+			session: await this.tokenService.getToken(),
 			recipe: {
 				form: {
 					provider: {
 						name: "react",
-						googleApiKey: environment.GOOGLE_API_KEY
+						googleApiKey: await this.envConfigService.getGoogleApiKey()
 					}
 				}
 			},
 		});
 
-		const component = oneSdk.component as unknown as (arg0: any, arg1: any) => any;
+		const component = this.oneSdk.component as unknown as (arg0: any, arg1: any) => any;
 		const device = component("device", {
 			activityType: "REGISTRATION",
 		});
